@@ -30,6 +30,7 @@ mod second {
 }
 
 use std::{
+    cell::{Ref, RefCell},
     cmp::Ordering,
     collections::{btree_map::Values, BTreeSet, HashMap, HashSet, LinkedList, VecDeque},
     fmt::format,
@@ -1605,4 +1606,170 @@ fn test_box_enum() {
         )),
     );
     println!("{:?}", category);
+}
+
+#[test]
+fn test_deference() {
+    let value1 = Box::new(10);
+    let value2 = Box::new(20);
+
+    let result = *value1 * *value2;
+    println!("{}", result);
+}
+
+struct MyValue<T> {
+    value: T,
+}
+
+use std::ops::Deref;
+
+impl<T> Deref for MyValue<T> {
+    type Target = T;
+    fn deref(&self) -> &Self::Target {
+        &self.value
+    }
+}
+
+#[test]
+fn test_deference_struct() {
+    let value = MyValue { value: 10 };
+    let real_value = *value;
+    println!("value {}", real_value);
+}
+
+fn say_hello_reference(name: &String) {
+    println!("Hello {}", name);
+}
+
+#[test]
+fn test_deref_reference() {
+    let name = MyValue {
+        value: "Mca".to_string(),
+    };
+
+    say_hello_reference(&name);
+}
+
+struct Book {
+    title: String,
+}
+
+impl Drop for Book {
+    fn drop(&mut self) {
+        println!("Dropping Book {}", self.title)
+    }
+}
+
+#[test]
+fn test_drop() {
+    let book = Book {
+        title: "Rust Programming".to_string(),
+    };
+    println!("{}", book.title);
+}
+use std::rc::Rc;
+
+enum Brand {
+    Of(String, Rc<Brand>),
+    End,
+}
+
+#[test]
+fn test_multiple_owneship() {
+    let apple = Rc::new(Brand::Of("Apple".to_string(), Rc::new(Brand::End)));
+    println!("Apple Reference Count : {}", Rc::strong_count(&apple));
+
+    let laptop = Rc::new(Brand::Of("Apple".to_string(), Rc::new(Brand::End)));
+    println!("Apple Reference Count : {}", Rc::strong_count(&apple));
+
+    {
+        let hp = Rc::new(Brand::Of("Apple".to_string(), Rc::new(Brand::End)));
+        println!("Apple Reference Count : {}", Rc::strong_count(&apple));
+    }
+
+    println!("Apple Reference Count : {}", Rc::strong_count(&apple));
+}
+
+#[derive(Debug)]
+struct Seller {
+    name: RefCell<String>,
+    active: RefCell<bool>,
+}
+
+#[test]
+
+fn test_ref_cell() {
+    let seller = Seller {
+        name: RefCell::new("Mca".to_string()),
+        active: RefCell::new(true),
+    };
+
+    {
+        let mut result = seller.name.borrow_mut();
+        *result = "Anwar".to_string();
+    }
+
+    println!("{:?}", seller);
+}
+
+static APPLICATION: &str = "My App";
+
+#[test]
+fn test_static() {
+    println!("{}", APPLICATION);
+}
+
+static mut COUNTER: u32 = 0;
+
+unsafe fn increment() {
+    COUNTER += 1;
+}
+
+#[test]
+fn test_unsafe() {
+    unsafe {
+        increment();
+        COUNTER += 1;
+        println!("Counter : {}", COUNTER);
+    }
+}
+
+macro_rules! hi {
+    () => {
+        println!("Hi Macro!")
+    };
+    ($name: expr) => {
+        println!("Hi {}!", $name);
+    };
+}
+
+#[test]
+fn test_macro() {
+    hi!();
+    hi!("MCA");
+    hi! {
+        "ANWAR"
+    };
+
+    let name = "mcnwr";
+    hi!(name);
+}
+
+macro_rules! iterate {
+    ($array:expr) => {
+        for i in $array{
+            println!("{}",i);
+        }
+    };
+    ($($item: expr),*)=>{
+        $(
+            println!("{}",$item);
+        )*
+    }
+}
+
+#[test]
+fn test_macro_iterate() {
+    iterate!([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    iterate!(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 }

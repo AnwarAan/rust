@@ -5,3 +5,12 @@ version = 4
 [[package]]
 name = "rust"
 version = "0.1.0"
+dependencies = [
+ "rust-crates-mcnwr",
+]
+
+[[package]]
+name = "rust-crates-mcnwr"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "66db7f5abf7b5d4db12133724b16cc2492590307d2d886f7d2ea28292c726d73"
